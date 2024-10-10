@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<resultset statement="WITH january_sales AS (
+    -- Filter sales made by customers A and B in January
+    SELECT 
+        s.customer_id,
+        s.order_date,
+        m.product_name,
+        m.price,
+        mem.join_date,
+        CASE 
+            -- If the order date is within the first 7 days after joining, apply 2x points
+            WHEN s.order_date BETWEEN mem.join_date AND DATE_ADD(mem.join_date, INTERVAL 6 DAY) THEN m.price * 2 * 10
+            ELSE m.price * 10
+        END AS points
+    FROM sales s
+    JOIN menu m ON s.product_id = m.product_id
+    JOIN members mem ON s.customer_id = mem.customer_id
+    WHERE s.customer_id IN ('A', 'B')  -- Focus on customers A and B
+      AND s.order_date BETWEEN '2021-01-01' AND '2021-01-31'  -- Only sales in January
+)
+-- Sum up the total points for each customer
+SELECT 
+    customer_id,
+    SUM(points) AS total_points
+FROM january_sales
+GROUP BY customer_id"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<row>
+		<field name="customer_id">B</field>
+		<field name="total_points">720</field>
+	</row>
+
+	<row>
+		<field name="customer_id">A</field>
+		<field name="total_points">1270</field>
+	</row>
+</resultset>
